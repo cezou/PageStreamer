@@ -15,12 +15,15 @@
 void displayUsage(const char* programName) {
     std::cerr << B BLUE "PageStreamer - Stream web pages to platforms" RESET << std::endl;
     std::cerr << B CYAN "Usage: " RESET CYAN << programName 
-              << B " [start|stop|status|--config [PLATFORM|STREAM_KEY]]" RESET << std::endl;
+              << B " [start|stop|status|--config [PLATFORM|STREAM_KEY|STREAM_URL]]" RESET << std::endl;
     std::cerr << "Commands:" << std::endl;
     std::cerr << "  start         Start streaming" << std::endl;
     std::cerr << "  stop          Stop streaming" << std::endl;
     std::cerr << "  status        Check stream status" << std::endl;
-    std::cerr << "  --config      Configure stream settings" << std::endl;
+    std::cerr << "  --config      Configure all stream settings" << std::endl;
+    std::cerr << "  --config PLATFORM    Configure streaming platform" << std::endl;
+    std::cerr << "  --config STREAM_KEY  Configure stream key" << std::endl;
+    std::cerr << "  --config STREAM_URL  Configure website URL to stream" << std::endl;
 }
 
 /**
@@ -150,6 +153,36 @@ bool configureStreamKey() {
 }
 
 /**
+ * @brief Configures the website URL to be streamed
+ * 
+ * Prompts the user to enter the URL of the website they want to stream
+ * 
+ * @return bool True if configuration was successful
+ */
+bool configureStreamUrl() {
+    std::string streamUrl;
+    
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    
+    std::cout << B CYAN "Stream URL Configuration" RESET << std::endl;
+    std::cout << YELLOW "Enter the URL of the website you want to stream: " RESET;
+    std::getline(std::cin, streamUrl);
+    
+    if (streamUrl.empty()) {
+        std::cout << YELLOW "Using default: https://roulette-tv.vercel.app/history" RESET << std::endl;
+        streamUrl = "https://roulette-tv.vercel.app/history";
+    }
+    
+    // Validate URL format (basic validation)
+    if (streamUrl.find("http") != 0) {
+        std::cout << YELLOW "URL should start with http:// or https://, adding https://" RESET << std::endl;
+        streamUrl = "https://" + streamUrl;
+    }
+    
+    return updateEnvFile("STREAM_URL", streamUrl);
+}
+
+/**
  * @brief Handles the configuration of stream settings
  * 
  * @param configType The specific setting to configure (optional)
@@ -164,6 +197,10 @@ bool handleConfig(const std::string& configType = "") {
     
     if (configType.empty() || configType == "STREAM_KEY") {
         success = configureStreamKey() && success;
+    }
+    
+    if (configType.empty() || configType == "STREAM_URL") {
+        success = configureStreamUrl() && success;
     }
     
     if (success) {

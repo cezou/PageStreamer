@@ -9,6 +9,8 @@ dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const STREAM_KEY = process.env.STREAM_KEY;
 const PLATFORM = process.env.PLATFORM || 'rtmp://a.rtmp.youtube.com/live2';
+// Ajouter la variable pour l'URL du site à streamer avec une valeur par défaut
+const STREAM_URL = process.env.STREAM_URL || 'https://roulette-tv.vercel.app/history';
 
 if (!STREAM_KEY) {
   console.error("ERROR: Streaming key not defined in .env file!");
@@ -180,8 +182,9 @@ function startFFmpeg() {
     });
 
     logWithTimestamp("Navigating to page...");
-    await page.goto('https://roulette-tv.vercel.app/history', { waitUntil: 'networkidle2' });
-    logWithTimestamp("Page loaded");
+    // Utiliser l'URL configurée au lieu de l'URL codée en dur
+    await page.goto(STREAM_URL, { waitUntil: 'networkidle2' });
+    logWithTimestamp(`Page loaded: ${STREAM_URL}`);
 
     await page.evaluate(() => {
       document.body.style.zoom = '1.3';
