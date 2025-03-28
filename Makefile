@@ -1,4 +1,4 @@
-NAME = PageStreamer
+NAME = pagestreamer
 CC = g++
 CFLAGS = -Wall -Wextra -Werror -std=c++11
 

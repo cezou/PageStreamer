@@ -60,7 +60,7 @@ sleep 3
 if ps -p $(cat "$DIR/stream.pid" 2>/dev/null) > /dev/null 2>&1; then
     echo "Stream démarré en arrière-plan avec PID: $(cat "$DIR/stream.pid")"
     echo "Consultez $PARENT_DIR/logs/stream.log pour voir les logs"
-    echo "Pour arrêter le stream: bash stop_stream.sh"
+    echo "Pour arrêter le stream: pagestreamer stop"
 else
     echo "AVERTISSEMENT: Le stream ne semble pas avoir démarré correctement."
     echo "Consultez $PARENT_DIR/logs/stream.log pour plus d'informations:"

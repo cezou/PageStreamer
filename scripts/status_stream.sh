@@ -45,4 +45,4 @@ echo "------------------"
 pgrep -fa "ffmpeg|chromium|Xvfb" | grep -v "grep"
 
 echo ""
-echo "Pour arrêter le stream: bash stop_stream.sh"
+echo "Pour arrêter le stream: pagestreamer stop"

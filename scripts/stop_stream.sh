@@ -68,4 +68,4 @@ if [ -e /tmp/.X99-lock ]; then
 fi
 
 echo "Tous les processus ont été arrêtés."
-echo "Vous pouvez redémarrer le stream avec 'bash start_stream.sh'"
+echo "Vous pouvez redémarrer le stream avec 'pagestreamer start'"
