@@ -79,14 +79,35 @@ setup_path() {
         echo "# Added by PageStreamer installer" >> "$shell_profile"
         echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$shell_profile"
         echo "PageStreamer added to PATH in $shell_profile"
-        echo "Please restart your terminal or run: source $shell_profile"
+        
+        # Apply changes to current session
+        export PATH="$PATH:$INSTALL_DIR"
+        echo "PATH updated in current session"
     else
-        echo "PageStreamer already in PATH"
+        echo "PageStreamer already in PATH configuration"
+        # Ensure it's also available in current session
+        export PATH="$PATH:$INSTALL_DIR"
     fi
     
     # Create symbolic link in ~/.local/bin if it exists
     if [ -d "$HOME/.local/bin" ]; then
+        mkdir -p "$HOME/.local/bin"
         ln -sf "$INSTALL_DIR/PageStreamer" "$HOME/.local/bin/pagestreamer" 2>/dev/null
+        echo "Symbolic link created in ~/.local/bin"
+    fi
+    
+    # Create symbolic link in /usr/local/bin if we have permissions (requires sudo)
+    if [ -d "/usr/local/bin" ] && [ -w "/usr/local/bin" ]; then
+        ln -sf "$INSTALL_DIR/PageStreamer" "/usr/local/bin/pagestreamer" 2>/dev/null
+        echo "Symbolic link created in /usr/local/bin"
+    fi
+    
+    # Verify the command is now available
+    if command -v pagestreamer &>/dev/null || [ -x "$INSTALL_DIR/PageStreamer" ]; then
+        echo "PageStreamer command is now available."
+    else
+        echo "Warning: PageStreamer command may not be available until you restart your terminal or run:"
+        echo "  source $shell_profile"
     fi
 }
 
@@ -95,16 +116,22 @@ echo "Adding PageStreamer to PATH..."
 setup_path
 
 # Run configuration - Using printf instead of echo for escape sequences
-printf "\033[2J\033[H"
+clear
 echo "Starting configuration..."
 "$INSTALL_DIR/PageStreamer" --config
 
 echo "===================================="
 echo "Installation completed successfully!"
-echo "PageStreamer is now available system-wide."
-echo "You can use it with these commands:"
+echo "PageStreamer is now available via:"
+echo "  $INSTALL_DIR/PageStreamer"
+echo ""
+echo "You can use these commands:"
 echo "  pagestreamer start  - Start the stream"
 echo "  pagestreamer stop   - Stop the stream"
 echo "  pagestreamer status - Check stream status"
 echo "  pagestreamer --config - Change configuration"
+echo ""
+echo "If the 'pagestreamer' command is not available, please run:"
+echo "  source $HOME/.$(basename $SHELL)rc"
+echo "or restart your terminal."
 echo "===================================="
