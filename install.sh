@@ -95,7 +95,7 @@ echo "Adding PageStreamer to PATH..."
 setup_path
 
 # Run configuration
-echo "Starting configuration..."
+echo "\x1b[2J\x1b[H Starting configuration..."
 "$INSTALL_DIR/PageStreamer" --config
 
 echo "===================================="
