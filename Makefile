@@ -1,6 +1,6 @@
 NAME = PageStreamer
 CC = g++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++11
 
 SRC_DIR = srcs
 OBJ_DIR = obj

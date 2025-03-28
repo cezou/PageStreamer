@@ -80,19 +80,22 @@ bool updateEnvFile(const std::string& key, const std::string& value) {
  * @return bool True if configuration was successful
  */
 bool configurePlatform() {
-    struct Platform {
+    // Define Platform structure outside the function for C++98 compatibility
+    struct PlatformInfo {
         std::string name;
         std::string rtmpUrl;
     };
-    std::vector<Platform> platforms = {
-        {"YouTube", "rtmp://a.rtmp.youtube.com/live2"},
-        {"Twitch", "rtmp://live.twitch.tv/app"},
-        {"Facebook", "rtmp://live-api-s.facebook.com:80/rtmp"},
-        {"Instagram", "rtmp://live-upload.instagram.com:80/rtmp"},
-        {"TikTok", "rtmp://rtmp-push.tiktok.com/live"},
-        {"LinkedIn", "rtmp://rtmp.linkedin.com/live"},
-        {"Custom", ""}
-    };
+    
+    // Initialize platforms array manually without initializer lists
+    std::vector<PlatformInfo> platforms;
+    platforms.push_back(PlatformInfo{"YouTube", "rtmp://a.rtmp.youtube.com/live2"});
+    platforms.push_back(PlatformInfo{"Twitch", "rtmp://live.twitch.tv/app"});
+    platforms.push_back(PlatformInfo{"Facebook", "rtmp://live-api-s.facebook.com:80/rtmp"});
+    platforms.push_back(PlatformInfo{"Instagram", "rtmp://live-upload.instagram.com:80/rtmp"});
+    platforms.push_back(PlatformInfo{"TikTok", "rtmp://rtmp-push.tiktok.com/live"});
+    platforms.push_back(PlatformInfo{"LinkedIn", "rtmp://rtmp.linkedin.com/live"});
+    platforms.push_back(PlatformInfo{"Custom", ""});
+    
     size_t selection = 0;
     std::string rtmpUrl;
     

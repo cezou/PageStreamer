@@ -61,8 +61,7 @@ install_dependencies() {
             gcc-c++ \
             make \
             curl \
-            git \
-            
+            git
     else
         echo "Unsupported OS: $OS"
         echo "Please install the required dependencies manually:"
@@ -82,27 +81,34 @@ install_dependencies() {
 install_nodejs() {
     echo "Checking Node.js installation..."
     
-    # Check if Node.js is installed
-    if ! command -v node &>/dev/null; then
-        echo "Node.js not found. Installing..."
-        
-        # Install Node.js using NVM
-        if ! command -v nvm &>/dev/null; then
-            echo "Installing NVM..."
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-            
-            # Load NVM
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    # Check if Node.js is installed and its version
+    if command -v node &>/dev/null; then
+        NODE_VERSION=$(node -v | cut -d "v" -f 2 | cut -d "." -f 1)
+        if [ "$NODE_VERSION" -ge 18 ]; then
+            echo "Node.js version $(node -v) is already installed and compatible."
+            return
+        else
+            echo "Node.js $(node -v) is installed but too old (v18+ required)."
         fi
-        
-        nvm install 16
-        nvm use 16
-        
     else
-        NODE_VERSION=$(node -v)
-        echo "Node.js version $NODE_VERSION is already installed."
+        echo "Node.js not found."
     fi
+    
+    echo "Installing/updating Node.js..."
+    
+    # Install Node.js using NVM
+    if ! command -v nvm &>/dev/null; then
+        echo "Installing NVM..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+        
+        # Load NVM
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    fi
+    
+    # Install latest LTS version instead of a specific version
+    nvm install --lts
+    nvm use --lts
     
     # Check if npm is installed
     if ! command -v npm &>/dev/null; then
@@ -110,7 +116,7 @@ install_nodejs() {
         exit 1
     else
         NPM_VERSION=$(npm -v)
-        echo "npm version $NPM_VERSION is already installed."
+        echo "npm version $NPM_VERSION is installed."
     fi
 }
 
