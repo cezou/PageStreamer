@@ -94,8 +94,9 @@ setup_path() {
 echo "Adding PageStreamer to PATH..."
 setup_path
 
-# Run configuration
-echo "\x1b[2J\x1b[H Starting configuration..."
+# Run configuration - Using printf instead of echo for escape sequences
+printf "\033[2J\033[H"
+echo "Starting configuration..."
 "$INSTALL_DIR/PageStreamer" --config
 
 echo "===================================="
