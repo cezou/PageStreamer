@@ -55,11 +55,9 @@ bool StreamManager::startStream() {
         }
         envFile.close();
     }
-    
     if (!hasStreamKey || !hasPlatform) {
         throw std::runtime_error("Stream configuration incomplete. Run 'pagestreamer --config' first.");
     }
-    
     std::string command = "cd " + scriptPath + " && bash start_stream.sh";
     int result = executeCommand(command);
     if (result != 0) {

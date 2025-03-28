@@ -7,7 +7,9 @@ OBJ_DIR = obj
 INC_DIR = includes
 
 SRCS = $(SRC_DIR)/main.cpp \
-       $(SRC_DIR)/StreamManager.cpp
+       $(SRC_DIR)/StreamManager.cpp \
+       $(SRC_DIR)/ConfigManager.cpp \
+       $(SRC_DIR)/ConfigFunctions.cpp
 
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 

@@ -4,80 +4,46 @@
 
 PageStreamer is a tool that automates streaming web pages to YouTube and other platforms. It sets up a headless browser environment that captures any web page and streams it to your streaming platform on a scheduled basis.
 
-## Features
-
-- **One-command Installation**: Easy installation via a simple curl command
-- **Interactive Configuration**: Guided setup for streaming platform and key
-- **Simple Controls**: Start, stop, and check status with one command
-- **Multiple Platforms**: Support for YouTube, Twitch, Facebook, Instagram, and more
-- **Scheduled Streaming**: Set up automatic streaming at specific times
-- **Headless Browser**: Uses Puppeteer to render web content without a visible browser
-- **Log Management**: Automatically rotates logs to prevent disk space issues
-- **Monitoring**: Keeps track of stream health and automatically restarts if needed
-
 ## Quick Installation
-
-Install PageStreamer with a single command:
 
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/cezou/PageStreamer/master/install.sh)"
 ```
 
-The installer will:
-1. Download the project to `~/.pagestreamer`
-2. Install all dependencies
-3. Build the project
-4. Add PageStreamer to your PATH
-5. Guide you through platform and stream key configuration
+
+## Features
+
+- **One-command Installation**: Easy setup and guided setup via a simple curl command
+- **Simple Controls**: Start, stop, and check status with one command : pagestreamer
+- **Multiple Platforms**: Support for YouTube, Twitch, Facebook, Instagram, TikTok and more
+- **Scheduled Streaming**: Set up automatic streaming times using crontab
+
+## How It Works
+
+PageStreamer uses a headless Chromium browser powered by Puppeteer to render web pages without displaying them on screen. The process works as follows:
+
+1. A virtual display (Xvfb) is created to run the browser in a headless environment
+2. Puppeteer launches Chromium and navigates to your specified web page
+3. FFmpeg captures the virtual display and audio output
+4. The captured content is encoded and streamed to your selected platform
+
+This approach is ideal for:
+- Remote servers (AWS, OCI, etc.) without a physical display
+- Windows Subsystem for Linux (WSL) environments
+- Dedicated streaming machines running Linux
+
 
 ## Usage
 
 ### Command Line Interface
 
-PageStreamer offers a simple command-line interface:
-
 ```bash
-# Start streaming
-pagestreamer start
-
-# Check stream status
-pagestreamer status
-
-# Stop streaming
-pagestreamer stop
-
-# Configure settings
-pagestreamer --config
+start     # Start streaming the configured web page
+stop      # Stop the current stream
+status    # Check if streaming is active
+--config  # Configure stream settings (platform, key, URL)
+--schedule # Set up automatic streaming schedule
 ```
-
-### Configuration
-
-You can configure your stream settings anytime with:
-
-```bash
-# Configure all settings
-pagestreamer --config
-
-# Configure just the platform
-pagestreamer --config PLATFORM
-
-# Configure just the stream key
-pagestreamer --config STREAM_KEY
-
-# Configure the website URL to stream
-pagestreamer --config STREAM_URL
-
-# View current configuration (stream key will be masked)
-pagestreamer --config see
-```
-
-### Default Schedule
-
-The system is configured to stream:
-- **Start**: Friday, Saturday, Sunday at 20:30 (Paris time)
-- **Stop**: Saturday, Sunday, Monday at 03:30 (Paris time)
-
-You can modify this schedule by editing the crontab.txt file and running `bash update_crontab.sh`.
 
 ## Example
 
@@ -92,8 +58,9 @@ You can use PageStreamer to stream sites like the [RouletteTV History page](http
 
 ## Code Standards
 
-This project follows the [Squid Norm](SquidNorm.en.md) coding standards.
+This project follows the [Squid Norm](https://cezou.github.io/SquidNorm/#/) coding standards.
 
 ## Author
 
-Cezou
+[Cezou](https://github.com/cezou/)
+ 

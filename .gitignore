@@ -26,6 +26,11 @@ stream_recovery/
 
 # Fichiers de crontab sauvegardés
 crontab_backup_*
+cron_*
+
+# Fichiers de test
+test_cron_access.sh
+update_crontab.sh
 
 # Fichiers temporaires du système
 /tmp/
