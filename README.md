@@ -66,6 +66,9 @@ pagestreamer --config STREAM_KEY
 
 # Configure the website URL to stream
 pagestreamer --config STREAM_URL
+
+# View current configuration (stream key will be masked)
+pagestreamer --config see
 ```
 
 ### Default Schedule

@@ -4,8 +4,20 @@
 #include <vector>
 #include <limits>
 #include <cstdlib>
+#include <cerrno>
+#include <cstring>
+#include <unistd.h>
+#include <termios.h>
 #include "../includes/StreamManager.hpp"
 #include "../includes/Colors.hpp"
+
+// Function prototypes 
+bool configurePlatform();
+bool configureStreamKey(bool inConfigSequence = false);
+bool configureStreamUrl();
+bool handleConfig(const std::string& configType = "");
+bool showConfiguration();
+std::string readPassword();
 
 /**
  * @brief Displays the usage instructions for the program
@@ -15,7 +27,7 @@
 void displayUsage(const char* programName) {
     std::cerr << B BLUE "PageStreamer - Stream web pages to platforms" RESET << std::endl;
     std::cerr << B CYAN "Usage: " RESET CYAN << programName 
-              << B " [start|stop|status|--config [PLATFORM|STREAM_KEY|STREAM_URL]]" RESET << std::endl;
+              << B " [start|stop|status|--config [PLATFORM|STREAM_KEY|STREAM_URL|see]]" RESET << std::endl;
     std::cerr << "Commands:" << std::endl;
     std::cerr << "  start         Start streaming" << std::endl;
     std::cerr << "  stop          Stop streaming" << std::endl;
@@ -24,6 +36,7 @@ void displayUsage(const char* programName) {
     std::cerr << "  --config PLATFORM    Configure streaming platform" << std::endl;
     std::cerr << "  --config STREAM_KEY  Configure stream key" << std::endl;
     std::cerr << "  --config STREAM_URL  Configure website URL to stream" << std::endl;
+    std::cerr << "  --config see         View current configuration" << std::endl;
 }
 
 /**
@@ -39,6 +52,33 @@ void displayUsage(const char* programName) {
 bool updateEnvFile(const std::string& key, const std::string& value) {
     std::string envPath = std::string(getenv("HOME")) + "/.pagestreamer/.env";
     std::string tempPath = envPath + ".tmp";
+    
+    // Make sure directory exists
+    std::string dirPath = std::string(getenv("HOME")) + "/.pagestreamer";
+    std::string mkdirCmd = "mkdir -p \"" + dirPath + "\"";
+    system(mkdirCmd.c_str());
+    
+    // Set proper permissions
+    std::string chmodCmd = "chmod 755 \"" + dirPath + "\"";
+    system(chmodCmd.c_str());
+    
+    // Create empty .env file if it doesn't exist
+    if (access(envPath.c_str(), F_OK) != 0) {
+        std::ofstream createEnv(envPath.c_str());
+        if (!createEnv.is_open()) {
+            std::cerr << RED "Error: Could not create .env file. Check permissions for " 
+                     << dirPath << RESET << std::endl;
+            std::cerr << YELLOW "Try running: mkdir -p ~/.pagestreamer && touch ~/.pagestreamer/.env "
+                     << "&& chmod 644 ~/.pagestreamer/.env" RESET << std::endl;
+            return false;
+        }
+        createEnv.close();
+        
+        // Set proper permissions for the file
+        std::string chmodFileCmd = "chmod 644 \"" + envPath + "\"";
+        system(chmodFileCmd.c_str());
+    }
+    
     std::ifstream inFile(envPath.c_str());
     std::ofstream outFile(tempPath.c_str());
     bool keyFound = false;
@@ -46,6 +86,8 @@ bool updateEnvFile(const std::string& key, const std::string& value) {
     
     if (!outFile.is_open()) {
         std::cerr << RED "Error: Could not open .env file for writing" RESET << std::endl;
+        std::cerr << YELLOW "Debug: Check if ~/.pagestreamer directory is writable with 'ls -la ~/.pagestreamer'" RESET << std::endl;
+        std::cerr << YELLOW "Try running: sudo chown -R $USER:$USER ~/.pagestreamer" RESET << std::endl;
         return false;
     }
     
@@ -69,10 +111,85 @@ bool updateEnvFile(const std::string& key, const std::string& value) {
     
     if (rename(tempPath.c_str(), envPath.c_str()) != 0) {
         std::cerr << RED "Error: Could not update .env file" RESET << std::endl;
+        std::cerr << YELLOW "Debug: Temporary file exists: " << (access(tempPath.c_str(), F_OK) == 0 ? "Yes" : "No") << RESET << std::endl;
+        std::cerr << YELLOW "Debug: Error code: " << errno << " (" << strerror(errno) << ")" RESET << std::endl;
         return false;
     }
     
     return true;
+}
+
+/**
+ * @brief Displays the current configuration values
+ * 
+ * Shows the platform, stream URL, and masked stream key
+ * 
+ * @return bool Always returns true
+ */
+bool showConfiguration() {
+    std::string envPath = std::string(getenv("HOME")) + "/.pagestreamer/.env";
+    std::ifstream envFile(envPath.c_str());
+    std::string platform = "Not configured";
+    std::string streamKey = "Not configured";
+    std::string streamUrl = "Not configured";
+    
+    if (envFile.is_open()) {
+        std::string line;
+        while (std::getline(envFile, line)) {
+            if (line.find("PLATFORM=") == 0 && line.length() > 9) {
+                platform = line.substr(9);
+            } else if (line.find("STREAM_KEY=") == 0 && line.length() > 11) {
+                streamKey = line.substr(11);
+                // Mask all but the first and last 4 characters of the stream key
+                if (streamKey.length() > 8) {
+                    streamKey = streamKey.substr(0, 4) + 
+                                std::string(streamKey.length() - 8, '*') + 
+                                streamKey.substr(streamKey.length() - 4);
+                } else if (streamKey.length() > 0) {
+                    // If key is short, mask all but the first and last characters
+                    streamKey = streamKey.substr(0, 1) + 
+                                std::string(streamKey.length() - 2, '*') + 
+                                streamKey.substr(streamKey.length() - 1);
+                }
+            } else if (line.find("STREAM_URL=") == 0 && line.length() > 11) {
+                streamUrl = line.substr(11);
+            }
+        }
+        envFile.close();
+    } else {
+        std::cout << YELLOW "Configuration file not found or cannot be opened." RESET << std::endl;
+        return true;
+    }
+    
+    std::cout << B CYAN "Current Configuration:" RESET << std::endl;
+    std::cout << CYAN "Platform: " RESET << platform << std::endl;
+    std::cout << CYAN "Stream Key: " RESET << streamKey << std::endl;
+    std::cout << CYAN "Stream URL: " RESET << streamUrl << std::endl;
+    
+    return true;
+}
+
+/**
+ * @brief Reads a password without echoing it to the console
+ * 
+ * Uses terminal control characters to disable echo during input
+ * 
+ * @return string The entered password/key
+ */
+std::string readPassword() {
+    // Special handling for Unix-based systems
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    
+    std::string password;
+    std::cin >> password;
+    
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    
+    return password;
 }
 
 /**
@@ -133,16 +250,23 @@ bool configurePlatform() {
 /**
  * @brief Configures the streaming key by prompting the user
  * 
+ * @param inConfigSequence Flag to indicate if this is part of a full config sequence
  * @return bool True if configuration was successful
  */
-bool configureStreamKey() {
+bool configureStreamKey(bool inConfigSequence) {
     std::string streamKey;
     
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    // Only use ignore if not in a full configuration sequence
+    if (!inConfigSequence) {
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
     
     std::cout << B CYAN "Stream Key Configuration" RESET << std::endl;
     std::cout << YELLOW "Enter your stream key: " RESET;
-    std::getline(std::cin, streamKey);
+    std::cout << WHITE "(what you type or paste will be hidden for security but it exists, just paste with CTRL+SHIFT+V on linux then press ENTER)" RESET << std::endl;
+    
+    // Use password-style input to hide the stream key as it's typed
+    streamKey = readPassword();
     
     if (streamKey.empty()) {
         std::cout << RED "Stream key cannot be empty" RESET << std::endl;
@@ -162,15 +286,15 @@ bool configureStreamKey() {
 bool configureStreamUrl() {
     std::string streamUrl;
     
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    // We don't need to ignore here since readPassword() leaves the buffer in a clean state
     
     std::cout << B CYAN "Stream URL Configuration" RESET << std::endl;
     std::cout << YELLOW "Enter the URL of the website you want to stream: " RESET;
-    std::getline(std::cin, streamUrl);
+    std::cin >> streamUrl;
     
     if (streamUrl.empty()) {
-        std::cout << YELLOW "Using default: https://roulette-tv.vercel.app/history" RESET << std::endl;
-        streamUrl = "https://roulette-tv.vercel.app/history";
+        std::cout << YELLOW "Using default: https://example.com/" RESET << std::endl;
+        streamUrl = "https://example.com/";
     }
     
     // Validate URL format (basic validation)
@@ -188,15 +312,24 @@ bool configureStreamUrl() {
  * @param configType The specific setting to configure (optional)
  * @return bool True if configuration was successful
  */
-bool handleConfig(const std::string& configType = "") {
+bool handleConfig(const std::string& configType) {
     bool success = true;
+    
+    if (configType == "see") {
+        return showConfiguration();
+    }
     
     if (configType.empty() || configType == "PLATFORM") {
         success = configurePlatform() && success;
     }
     
     if (configType.empty() || configType == "STREAM_KEY") {
-        success = configureStreamKey() && success;
+        // When doing a full config, pass true to indicate we're in a sequence
+        if (configType.empty()) {
+            success = configureStreamKey(true) && success;
+        } else {
+            success = configureStreamKey(false) && success;
+        }
     }
     
     if (configType.empty() || configType == "STREAM_URL") {
@@ -206,6 +339,7 @@ bool handleConfig(const std::string& configType = "") {
     if (success) {
         std::cout << GREEN "Configuration saved successfully!" RESET << std::endl;
         std::cout << "You can change settings anytime with: pagestreamer --config" << std::endl;
+        std::cout << "You can view current settings with: pagestreamer --config see" << std::endl;
     } else {
         std::cout << RED "Configuration failed" RESET << std::endl;
     }
@@ -235,7 +369,7 @@ int main(int argc, char **argv) {
             if (argc > 2) {
                 return handleConfig(argv[2]) ? 0 : 1;
             } else {
-                return handleConfig() ? 0 : 1;
+                return handleConfig("") ? 0 : 1;
             }
         }
         
