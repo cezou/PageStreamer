@@ -95,7 +95,7 @@ echo "Adding PageStreamer to PATH..."
 setup_path
 
 # Run configuration - Using printf instead of echo for escape sequences
-printf "\033[2J\033[H SQUID"
+printf "SQUID"
 echo "Starting configuration..."
 "$INSTALL_DIR/PageStreamer" --config
 
