@@ -1,4 +1,7 @@
 #include "../includes/StreamManager.hpp"
+#include <cstdlib>
+#include <fstream>
+#include <string>
 
 /**
  * @brief Constructor
@@ -6,14 +9,13 @@
  * Initializes the StreamManager with the path to the scripts directory.
  */
 StreamManager::StreamManager() {
-    scriptPath = "./scripts";
+    scriptPath = std::string(getenv("HOME")) + "/.pagestreamer/scripts";
 }
 
 /**
  * @brief Destructor
  */
 StreamManager::~StreamManager() {
-    // Nothing to clean up
 }
 
 /**
@@ -30,11 +32,34 @@ static int executeCommand(const std::string& command) {
  * @brief Starts the stream
  * 
  * Executes the start_stream.sh script to initialize and start the stream.
+ * Verifies that the configuration is complete before starting.
  * 
  * @return True if the stream started successfully, false otherwise
  * @throws std::runtime_error If an error occurs during execution
  */
 bool StreamManager::startStream() {
+    std::string envPath = std::string(getenv("HOME")) + "/.pagestreamer/.env";
+    std::ifstream envFile(envPath.c_str());
+    bool hasStreamKey = false;
+    bool hasPlatform = false;
+    
+    if (envFile.is_open()) {
+        std::string line;
+        while (std::getline(envFile, line)) {
+            if (line.find("STREAM_KEY=") == 0 && line.length() > 11) {
+                hasStreamKey = true;
+            }
+            if (line.find("PLATFORM=") == 0 && line.length() > 9) {
+                hasPlatform = true;
+            }
+        }
+        envFile.close();
+    }
+    
+    if (!hasStreamKey || !hasPlatform) {
+        throw std::runtime_error("Stream configuration incomplete. Run 'pagestreamer --config' first.");
+    }
+    
     std::string command = "cd " + scriptPath + " && bash start_stream.sh";
     int result = executeCommand(command);
     if (result != 0) {

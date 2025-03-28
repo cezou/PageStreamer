@@ -12,11 +12,14 @@ and improve code readability.
 ### 2. Comments
 - No comments inside functions, except potentially brief end-of-line 
   comments to explain complex details.
-- Each function must be documented in Doxygen format with a brief description 
-  that explains what it does, how it does it, and details its arguments.
-- Documentation should be sufficient to understand the function by 
-  hovering over its prototype from an IDE.
 - All comments must be written in English.
+- **Comment placement**:
+  - Document classes with a Doxygen comment block before the class definition, 
+    but not inside the class.
+  - Document function/method implementations with a Doxygen comment block in 
+    the implementation file (.cpp, .js, etc.), not in the header/interface file.
+  - Do not duplicate documentation between declaration and implementation.
+  - When documenting APIs, document the interface rather than the implementation.
 
 ### 3. Spacing
 - Between two functions, there must be exactly one empty line.
@@ -33,65 +36,64 @@ and improve code readability.
 
 ## Example
 
-```javascript
+### Header file (.hpp)
+
+```cpp
 /**
- * @brief Processes data array and returns statistics
+ * @brief Mathematical utility class
  * 
- * This function analyzes a number array, filters values based on a threshold,
- * calculates various statistics (mean, median, standard deviation)
- * and formats the result as JSON.
- * 
- * @param {number[]} dataArray - Array of numbers to analyze
- * @param {number} threshold - Minimum value to consider in analysis
- * @param {boolean} includeMean - If true, includes the mean in result
- * @param {boolean} includeMedian - If true, includes the median in result
- * @param {boolean} includeStdDev - If true, includes standard deviation
- * @return {object} JSON object containing requested statistics
+ * This class provides various mathematical operations.
  */
-function processDataStatistics(dataArray, threshold = 0, includeMean = true,
-                               includeMedian = true, includeStdDev = true) {
-    let resultObject = {};
-    let filteredData = [];
-    let sum = 0;
-    let meanValue = 0;
-    let medianValue = 0;
-    let standardDev = 0;
-    let i = 0;
-    let dataCount = 0;
-    let variance = 0; // Variables are declared at the beginning
-                      // Only one empty line allowed here
-    filteredData = dataArray.filter(value => value >= threshold);
-    dataCount = filteredData.length;
-    if (dataCount === 0) {
-        return { error: "No data exceeds the threshold" };
+class MathUtils {
+private:
+    double precision;
+    
+public:
+    MathUtils(double precision = 0.0001);
+    ~MathUtils();
+    
+    double computeAverage(const std::vector<double>& values);
+    bool isApproximatelyEqual(double a, double b);
+};
+```
+
+### Implementation file (.cpp)
+
+```cpp
+/**
+ * @brief Constructor
+ * 
+ * Initializes the MathUtils with the specified precision.
+ * 
+ * @param precision The precision value for approximate comparisons
+ */
+MathUtils::MathUtils(double precision) {
+    this->precision = precision;
+}
+
+/**
+ * @brief Computes the average of a set of values
+ * 
+ * @param values The vector of double values to average
+ * @return The arithmetic mean of the values
+ */
+double MathUtils::computeAverage(const std::vector<double>& values) {
+    double sum = 0.0;
+    int count = values.size();  // Variables are declared at the beginning
+                                // Only one empty line allowed here
+    if (count == 0) {
+        return 0.0;
     }
-    for (i = 0; i < dataCount; i++) {
-        sum += filteredData[i];
+    for (int i = 0; i < count; i++) {
+        sum += values[i];
     }
-    meanValue = sum / dataCount;
-    if (includeMean) {
-        resultObject.mean = meanValue;
-    }
-    if (includeMedian) {
-        filteredData.sort((a, b) => a - b);
-        if (dataCount % 2 === 0) {
-            medianValue = (filteredData[dataCount/2 - 1] + 
-                          filteredData[dataCount/2]) / 2;
-        } else {
-            medianValue = filteredData[Math.floor(dataCount/2)];
-        }
-        resultObject.median = medianValue;
-    }
-    if (includeStdDev) {
-        for (i = 0; i < dataCount; i++) {
-            variance += Math.pow(filteredData[i] - meanValue, 2);
-        }
-        standardDev = Math.sqrt(variance / dataCount);
-        resultObject.standardDeviation = standardDev;
-    }
-    return resultObject;
+    return sum / count;
 }
 ```
 
 By following these rules, you will facilitate collaboration and understanding
 for both humans and AI.
+
+# Author
+
+Cezou

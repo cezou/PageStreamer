@@ -1,75 +1,92 @@
-# RouletteTV Streaming System
+# PageStreamer
 
 ## Overview
 
-This project automates streaming of the [RouletteTV History page](https://roulette-tv.vercel.app/history) to YouTube. It sets up a headless browser environment that captures a web page and streams it to YouTube on a scheduled basis.
+PageStreamer is a tool that automates streaming web pages to YouTube and other platforms. It sets up a headless browser environment that captures any web page and streams it to your streaming platform on a scheduled basis.
 
 ## Features
 
-- **Automated Streaming**: Runs automatically at scheduled times
-- **Headless Browser**: Uses Puppeteer to render web content
-- **Virtual Display**: Leverages Xvfb for headless rendering
-- **Virtual Audio**: Creates virtual audio devices for streaming
-- **Log Rotation**: Manages log files to prevent disk space issues
-- **Monitoring**: Monitors stream health and restarts if needed
-- **Scheduled Operation**: Streams only during specified time periods
+- **One-command Installation**: Easy installation via a simple curl command
+- **Interactive Configuration**: Guided setup for streaming platform and key
+- **Simple Controls**: Start, stop, and check status with one command
+- **Multiple Platforms**: Support for YouTube, Twitch, Facebook, Instagram, and more
+- **Scheduled Streaming**: Set up automatic streaming at specific times
+- **Headless Browser**: Uses Puppeteer to render web content without a visible browser
+- **Log Management**: Automatically rotates logs to prevent disk space issues
+- **Monitoring**: Keeps track of stream health and automatically restarts if needed
 
-## Schedule
+## Quick Installation
 
-The system is configured to stream at the following times:
-- **Start**: Friday, Saturday, Sunday at 20:30 (Paris time)
-- **Stop**: Saturday, Sunday, Monday at 03:30 (Paris time)
+Install PageStreamer with a single command:
 
-## Directory Structure
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/cezou/PageStreamer/master/install.sh)"
+```
 
-- **scripts/**: Contains all operational scripts
-  - `stream.js`: Main streaming script using Puppeteer and ffmpeg
-  - `start_stream.sh`: Script to initialize and start the stream
-  - `stop_stream.sh`: Script to properly stop all related processes
-  - `check_stream_time.sh`: Checks if current time is in streaming schedule
-  - Various utility scripts
-
-- **logs/**: Contains log files (rotated automatically)
+The installer will:
+1. Download the project to `~/.pagestreamer`
+2. Install all dependencies
+3. Build the project
+4. Add PageStreamer to your PATH
+5. Guide you through platform and stream key configuration
 
 ## Usage
 
-### Manual Operation
+### Command Line Interface
+
+PageStreamer offers a simple command-line interface:
 
 ```bash
-# Start the stream manually
-cd /home/ubuntu/stream
-bash scripts/start_stream.sh
+# Start streaming
+pagestreamer start
 
 # Check stream status
-bash scripts/status_stream.sh
+pagestreamer status
 
-# Stop the stream
-bash scripts/stop_stream.sh
+# Stop streaming
+pagestreamer stop
+
+# Configure settings
+pagestreamer --config
 ```
 
-### Automatic Operation
+### Configuration
 
-The system uses crontab for scheduled operation. View current schedule with:
+You can configure your stream settings anytime with:
 
 ```bash
-crontab -l
+# Configure all settings
+pagestreamer --config
+
+# Configure just the platform
+pagestreamer --config PLATFORM
+
+# Configure just the stream key
+pagestreamer --config STREAM_KEY
 ```
 
-## Dependencies
+### Default Schedule
 
-- Node.js
-- Puppeteer
-- ffmpeg
-- Xvfb
-- PulseAudio
+The system is configured to stream:
+- **Start**: Friday, Saturday, Sunday at 20:30 (Paris time)
+- **Stop**: Saturday, Sunday, Monday at 03:30 (Paris time)
+
+You can modify this schedule by editing the crontab.txt file and running `bash update_crontab.sh`.
+
+## Example
+
+You can use PageStreamer to stream sites like the [RouletteTV History page](https://roulette-tv.vercel.app/history) to a YouTube channel such as [FortunaCasinoTV](https://www.youtube.com/@FortunaCasinoTV/live).
+
+## System Requirements
+
+- Linux-based system (Ubuntu/Debian recommended)
+- Internet connection
+- Account on a streaming platform with streaming enabled
+- Stream key from your platform
 
 ## Code Standards
 
-This project follows the [Squid Norm](SquidNorm.en.md) coding standards for consistent and maintainable code.
-
-## Configuration
-
-Stream configuration is stored in `.env` file with the YouTube stream key.
+This project follows the [Squid Norm](SquidNorm.en.md) coding standards.
 
 ## Author
 
