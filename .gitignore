@@ -1,0 +1,44 @@
+# Fichiers d'environnement
+.env
+
+# Logs
+logs/
+*.log
+*.log.*
+*.gz
+
+# Dépendances
+node_modules/
+
+# Fichiers PID et autres fichiers temporaires
+*.pid
+.DS_Store
+
+# Fichiers de sauvegarde
+*.bak
+*~
+
+# Fichiers de configuration spécifiques à l'utilisateur
+.Xauthority
+
+# Fichiers de récupération
+stream_recovery/
+
+# Fichiers de crontab sauvegardés
+crontab_backup_*
+
+# Fichiers temporaires du système
+/tmp/
+.vscode/
+.idea/
+*.swp
+*.swo
+objs/
+
+# Certificats et clés
+*.pem
+*.key
+*.cert
+
+# Fichiers de configuration locale
+config.local.js

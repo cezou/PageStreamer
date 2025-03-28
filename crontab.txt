@@ -1,0 +1,11 @@
+# Lancer le stream à 20h30 les vendredis, samedis et dimanches (heure de Paris)
+30 20 * * 5-7 cd /home/ubuntu/stream/scripts && bash start_stream.sh >> /home/ubuntu/stream/logs/cron.log 2>&1
+
+# Stopper le stream à 3h30 les samedis, dimanches et lundis (heure de Paris)
+30 3 * * 6,7,1 cd /home/ubuntu/stream/scripts && bash stop_stream.sh >> /home/ubuntu/stream/logs/cron.log 2>&1
+
+# Rotation des logs toutes les 30 minutes, mais uniquement pendant les périodes de stream
+*/30 * * * * cd /home/ubuntu/stream/scripts && bash check_stream_time.sh && bash rotate_logs.sh >> /home/ubuntu/stream/logs/rotation.log 2>&1
+
+# Surveillance du stream toutes les 15 minutes
+#*/15 * * * * cd /home/ubuntu/stream/scripts && bash monitor_stream.sh >> /home/ubuntu/stream/logs/monitor.log 2>&1
