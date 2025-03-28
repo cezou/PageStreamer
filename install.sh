@@ -57,7 +57,11 @@ bash "$INSTALL_DIR/scripts/install_deps.sh"
 echo "Building PageStreamer..."
 make
 
-# Add to PATH
+# Create bin directory and symlink
+mkdir -p "$INSTALL_DIR/bin"
+ln -sf "$INSTALL_DIR/PageStreamer" "$INSTALL_DIR/bin/pagestreamer"
+
+# Add to PATH - improved version for all environments
 setup_path() {
     local shell_profile=""
     
@@ -74,64 +78,86 @@ setup_path() {
         shell_profile="$HOME/.profile"
     fi
     
-    # Add to PATH if not already there
+    # Create directories for links
+    mkdir -p "$HOME/.local/bin"
+    
+    # Add multiple options for PATH to ensure it works
+    
+    # 1. Add executable directory to PATH
     if ! grep -q "export PATH=\"\$PATH:$INSTALL_DIR\"" "$shell_profile"; then
+        echo "" >> "$shell_profile"
         echo "# Added by PageStreamer installer" >> "$shell_profile"
         echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$shell_profile"
-        echo "PageStreamer added to PATH in $shell_profile"
-        
-        # Apply changes to current session
-        export PATH="$PATH:$INSTALL_DIR"
-        echo "PATH updated in current session"
-    else
-        echo "PageStreamer already in PATH configuration"
-        # Ensure it's also available in current session
-        export PATH="$PATH:$INSTALL_DIR"
+        echo "Path added to $shell_profile"
     fi
     
-    # Create symbolic link in ~/.local/bin if it exists
-    if [ -d "$HOME/.local/bin" ]; then
-        mkdir -p "$HOME/.local/bin"
-        ln -sf "$INSTALL_DIR/PageStreamer" "$HOME/.local/bin/pagestreamer" 2>/dev/null
-        echo "Symbolic link created in ~/.local/bin"
+    # 2. Add bin subdirectory to PATH
+    if ! grep -q "export PATH=\"\$PATH:$INSTALL_DIR/bin\"" "$shell_profile"; then
+        echo "export PATH=\"\$PATH:$INSTALL_DIR/bin\"" >> "$shell_profile"
+        echo "Bin path added to $shell_profile"
     fi
     
-    # Create symbolic link in /usr/local/bin if we have permissions (requires sudo)
-    if [ -d "/usr/local/bin" ] && [ -w "/usr/local/bin" ]; then
-        ln -sf "$INSTALL_DIR/PageStreamer" "/usr/local/bin/pagestreamer" 2>/dev/null
-        echo "Symbolic link created in /usr/local/bin"
+    # 3. Create symlink in ~/.local/bin which should be in PATH
+    ln -sf "$INSTALL_DIR/PageStreamer" "$HOME/.local/bin/pagestreamer"
+    echo "Symlink created in ~/.local/bin"
+    
+    # 4. Add ~/.local/bin to PATH if not already there
+    if ! grep -q "export PATH=\"\$PATH:\$HOME/.local/bin\"" "$shell_profile"; then
+        echo "export PATH=\"\$PATH:\$HOME/.local/bin\"" >> "$shell_profile"
+        echo "~/.local/bin added to PATH in $shell_profile"
     fi
     
-    # Verify the command is now available
-    if command -v pagestreamer &>/dev/null || [ -x "$INSTALL_DIR/PageStreamer" ]; then
-        echo "PageStreamer command is now available."
-    else
-        echo "Warning: PageStreamer command may not be available until you restart your terminal or run:"
-        echo "  source $shell_profile"
+    # 5. Create direct alias as a fallback
+    if ! grep -q "alias pagestreamer=\"$INSTALL_DIR/PageStreamer\"" "$shell_profile"; then
+        echo "alias pagestreamer=\"$INSTALL_DIR/PageStreamer\"" >> "$shell_profile"
+        echo "Alias created in $shell_profile"
     fi
+    
+    # Apply PATH changes to current session
+    export PATH="$PATH:$INSTALL_DIR:$INSTALL_DIR/bin:$HOME/.local/bin"
+    alias pagestreamer="$INSTALL_DIR/PageStreamer"
+    
+    echo ""
+    echo "PATH has been updated with multiple options to ensure the command works."
+    echo "The pagestreamer command should now be available after you run:"
+    echo "  source $shell_profile"
 }
 
 # Setup PATH
 echo "Adding PageStreamer to PATH..."
 setup_path
 
-# Run configuration - Using printf instead of echo for escape sequences
+# Provide direct executable path for immediate use
+echo ""
+echo "You can use PageStreamer immediately by running:"
+echo "  $INSTALL_DIR/PageStreamer"
+echo ""
+
+# Run configuration - Using clear command instead of escape sequences
 clear
 echo "Starting configuration..."
 "$INSTALL_DIR/PageStreamer" --config
 
 echo "===================================="
 echo "Installation completed successfully!"
-echo "PageStreamer is now available via:"
-echo "  $INSTALL_DIR/PageStreamer"
 echo ""
-echo "You can use these commands:"
+echo "PageStreamer is now available via:"
+echo "  $INSTALL_DIR/PageStreamer (direct path)"
+echo ""
+echo "To make the 'pagestreamer' command available, run:"
+echo "  source $HOME/.$(basename $SHELL)rc"
+echo ""
+echo "After sourcing your shell profile, you can use:"
 echo "  pagestreamer start  - Start the stream"
 echo "  pagestreamer stop   - Stop the stream"
 echo "  pagestreamer status - Check stream status"
 echo "  pagestreamer --config - Change configuration"
-echo ""
-echo "If the 'pagestreamer' command is not available, please run:"
-echo "  source $HOME/.$(basename $SHELL)rc"
-echo "or restart your terminal."
 echo "===================================="
+
+# Temporary solution for immediate use
+chmod +x "$INSTALL_DIR/PageStreamer"
+echo ""
+echo "For immediate use without restarting your terminal:"
+export PATH="$PATH:$INSTALL_DIR"
+echo "$ export PATH=\"\$PATH:$INSTALL_DIR\""
+echo "$ pagestreamer status"
