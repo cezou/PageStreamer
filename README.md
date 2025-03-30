@@ -10,10 +10,13 @@ PageStreamer is a tool that automates streaming web pages to YouTube and other p
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/cezou/PageStreamer/master/install.sh)"
 ```
 
+## Example
+
+You can use PageStreamer to stream website pages like [RouletteTV History page](https://roulette-tv.vercel.app/history) to a YouTube channel such as [FortunaCasinoTV](https://www.youtube.com/@FortunaCasinoTV/live).
+
 
 ## Features
 
-- **One-command Installation**: Easy setup and guided setup via a simple curl command
 - **Simple Controls**: Start, stop, and check status with one command : pagestreamer
 - **Multiple Platforms**: Support for YouTube, Twitch, Facebook, Instagram, TikTok and more
 - **Scheduled Streaming**: Set up automatic streaming times using crontab
@@ -32,22 +35,17 @@ This approach is ideal for:
 - Windows Subsystem for Linux (WSL) environments
 - Dedicated streaming machines running Linux
 
-
 ## Usage
 
 ### Command Line Interface
 
 ```bash
-start     # Start streaming the configured web page
-stop      # Stop the current stream
-status    # Check if streaming is active
---config  # Configure stream settings (platform, key, URL)
---schedule # Set up automatic streaming schedule
+pagestreamer    start     # Start streaming the configured web page
+                stop      # Stop the current stream
+                status    # Check if streaming is active
+                --config  # Configure stream settings (platform, key, URL)
+                --schedule # Set up automatic streaming schedule
 ```
-
-## Example
-
-You can use PageStreamer to stream sites like the [RouletteTV History page](https://roulette-tv.vercel.app/history) to a YouTube channel such as [FortunaCasinoTV](https://www.youtube.com/@FortunaCasinoTV/live).
 
 ## System Requirements
 
