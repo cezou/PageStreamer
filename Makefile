@@ -27,7 +27,7 @@ clean:
 	rm -rf $(OBJ_DIR)
 
 fclean: clean
-	rm -f $(NAME)
+	rm -f $(NAME) stream.pid
 
 re: fclean all
 

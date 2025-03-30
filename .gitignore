@@ -47,3 +47,4 @@ objs/
 
 # Fichiers de configuration locale
 config.local.js
+backups/
