@@ -46,44 +46,69 @@ function logWithTimestamp(message) {
  */
 function startFFmpeg() {
   logWithTimestamp("Starting ffmpeg...");
-  
+
   if (!STREAM_KEY) {
     logWithTimestamp("ERROR: STREAM_KEY not defined. Check .env file in parent directory.");
     process.exit(1);
   }
-  
+
+  // Check if we're streaming to Twitch
+  const isTwitch = PLATFORM.includes('twitch.tv');
+
   const ffmpeg = spawn('ffmpeg', [
-    '-f', 'pulse', '-i', 'virt_output.monitor',
-    '-thread_queue_size', '1024',
-    '-f', 'x11grab', 
+    // Audio input with larger thread queue and sync options
+    '-thread_queue_size', '4096',
+    '-f', 'pulse',
+    '-i', 'virt_output.monitor',
+
+    // Video input with increased thread queue
+    '-thread_queue_size', '4096',
+    '-f', 'x11grab',
     '-probesize', '10M',
-    '-s', `${WIDTH}x${HEIGHT}`, 
-    '-r', '24', 
+    '-s', `${WIDTH}x${HEIGHT}`,
+    '-r', '30',
     '-i', ':99.0',
+
+    // Filter complex for synchronization
+    '-filter_complex', 'aresample=async=1000',
+
+    // Video codec settings
     '-c:v', 'libx264',
     '-preset', 'veryfast',
     '-tune', 'zerolatency',
-    '-b:v', '4000k',
-    '-maxrate', '4000k',
+    '-pix_fmt', 'yuv420p',
+    '-b:v', isTwitch ? '6000k' : '4000k',
+    '-maxrate', isTwitch ? '6000k' : '4000k',
     '-bufsize', '7000k',
-    '-g', '24',
+    '-g', '60',
+    '-keyint_min', '30',
     '-crf', '23',
-    '-fflags', 'nobuffer',
-    '-flush_packets', '1',
+    '-profile:v', 'main',
+    '-level', '4.1',
+
+    // Audio codec settings
     '-c:a', 'aac',
-    '-b:a', '192k',
+    '-b:a', '160k',
     '-ar', '48000',
     '-ac', '2',
-    '-reconnect', '1',
-    '-reconnect_streamed', '1',
-    '-reconnect_delay_max', '120',
+
+    // Force audio/video sync - crucial for Twitch
+    '-vsync', 'cfr',
+    '-async', '1',
+
+    // Stream output settings
+    '-fflags', '+genpts',
+    '-max_interleave_delta', '0',
+    '-shortest',
+    '-movflags', '+faststart',
     '-f', 'flv',
+    '-flvflags', 'no_duration_filesize',
     `-xerror`,
     `${PLATFORM}/${STREAM_KEY}`
   ]);
 
   ffmpeg.stdout.on('data', data => logWithTimestamp(`ffmpeg stdout: ${data}`));
-  
+
   ffmpeg.stderr.on('data', data => {
     const dataStr = data.toString();
     if (!dataStr.match(/^frame=\s*\d+/)) {
@@ -93,7 +118,7 @@ function startFFmpeg() {
 
   ffmpeg.on('close', (code, signal) => {
     logWithTimestamp(`ffmpeg stopped with code: ${code}, signal: ${signal}`);
-    
+
     if (code !== 0 && !process.exitCode) {
       logWithTimestamp("Attempting to restart ffmpeg in 30 seconds...");
       setTimeout(startFFmpeg, RETRY_DELAY_MS);
@@ -137,7 +162,7 @@ function startFFmpeg() {
           logWithTimestamp(`Error stopping ffmpeg: ${e.message}`);
         }
       }
-      
+
       if (browser) {
         try {
           browser.close();
@@ -152,7 +177,7 @@ function startFFmpeg() {
       cleanup();
       process.exit(0);
     });
-    
+
     process.on('SIGTERM', () => {
       logWithTimestamp("SIGTERM received, shutting down...");
       cleanup();
@@ -186,16 +211,32 @@ function startFFmpeg() {
     await page.goto(STREAM_URL, { waitUntil: 'networkidle2' });
     logWithTimestamp(`Page loaded: ${STREAM_URL}`);
 
+    // Fonction auxiliaire pour les actions souris et cacher le curseur
+    async function actions(page) {
+      // Masquer le curseur via CSS de façon robuste
+      try {
+        await page.evaluate(() => {
+          const style = document.createElement('style');
+          style.innerHTML = 'body, * { cursor: none !important; }';
+          document.head.appendChild(style);
+        });
+      } catch (e) {
+        logWithTimestamp('Warning: Could not inject cursor CSS: ' + e.message);
+      }
+      // Effectuer le clic et déplacer la souris
+      await page.mouse.click(1106, 822);
+      await page.mouse.move(1, 1);
+    }
+    await actions(page);
+      
     await page.evaluate(() => {
-      document.body.style.zoom = '1.3';
+      document.body.style.zoom = '1.1';
     });
-    await page.mouse.click(WIDTH, HEIGHT);
-    await page.mouse.move(10, 10);
 
     ffmpegProcess = startFFmpeg();
 
     logWithTimestamp('Stream started...');
-    
+
     const pingInterval = setInterval(() => {
       try {
         if (!browser || !browser.isConnected()) {
@@ -203,9 +244,9 @@ function startFFmpeg() {
           clearInterval(pingInterval);
           throw new Error("Browser disconnected");
         }
-        
+
         logWithTimestamp(`Stream running for ${process.uptime().toFixed(2)} seconds`);
-        
+
         try {
           const ffmpegRunning = execSync('pgrep -f "ffmpeg.*rtmp"').toString().trim() !== '';
           if (!ffmpegRunning) {
@@ -216,7 +257,7 @@ function startFFmpeg() {
           logWithTimestamp("FFmpeg not running, restarting...");
           ffmpegProcess = startFFmpeg();
         }
-        
+
         execSync('bash ./rotate_logs.sh', { stdio: 'ignore' });
       } catch (err) {
         logWithTimestamp(`Error during ping: ${err.message}`);

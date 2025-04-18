@@ -39,6 +39,10 @@ update_crontab.sh
 *.swp
 *.swo
 objs/
+obj/
+pagestreamer
+
+
 
 # Certificats et clés
 *.pem
