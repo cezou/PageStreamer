@@ -2,7 +2,7 @@
 
 ## Overview
 
-PageStreamer is a tool that automates streaming web pages to YouTube and other platforms. It sets up a headless browser environment that captures any web page and streams it to your streaming platform on a scheduled basis.
+PageStreamer is a tool that automates streaming web pages to YouTube, Twitch and other platforms. It sets up a headless browser environment that captures any web page and streams it to your streaming platform, designed for scheduling it.
 
 ## Quick Installation
 
@@ -10,9 +10,21 @@ PageStreamer is a tool that automates streaming web pages to YouTube and other p
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/cezou/PageStreamer/master/install.sh)"
 ```
 
-## Example
+## Example of usage
 
 You can use PageStreamer to stream website pages like [RouletteTV History page](https://roulette-tv.vercel.app/history) to a YouTube channel such as [FortunaCasinoTV](https://www.youtube.com/@FortunaCasinoTV/live).
+
+Since it's a livestream, you can put it on a __FiveM TV__ _(using /media)_.
+
+<div align="center">
+  <a href="https://www.youtube.com/watch?v=OoPI71_KAIg" target="_blank">
+    <img src="https://img.youtube.com/vi/OoPI71_KAIg/maxresdefault.jpg" alt="RouletteTV Demonstration" width="600" style="border-radius:10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+	      <p align="center">
+      ▶️ <a href="https://www.youtube.com/watch?v=OoPI71_KAIg" target="_blank"><b>Watch Demo on YouTube</b></a>
+    </p>
+
+  </a>
+</div>
 
 
 ## Features
